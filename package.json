@@ -1,0 +1,21 @@
+{
+  "name": "async-tags",
+  "version": "1.0.0",
+  "description": "common-tags but async",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "standard | snazzy && node --test"
+  },
+  "keywords": [],
+  "author": "Matteo Collina <hello@matteocollina.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@matteo.collina/tspl": "^0.1.0",
+    "snazzy": "^9.0.0",
+    "standard": "^17.1.0"
+  },
+  "dependencies": {
+    "common-tags": "^1.8.2"
+  }
+}

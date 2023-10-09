@@ -1,41 +1,49 @@
 import * as tags from 'common-tags'
 import { Readable } from 'node:stream'
+import { once } from 'node:events'
 
-function build () {
+function render (strings, ...values) {
   let endReached = false
   const stream = new Readable({
     objectMode: true,
-    read () {}
+    read () {
+      stream.emit('readCalled')
+    }
   })
 
-  function html (strings, ...values) {
-    ;(async function () {
-
+  ;(async function () {
+    try {
       for (let i = 0; i < strings.length; i++) {
         const string = strings[i]
         let value = values[i]
         if (typeof value?.then === 'function') {
           value = await value
         }
-        const res = tags.html.apply(null, [[string, ''], value])
-        if (res) {
-          stream.push(res)
+        if (value && value[Symbol.asyncIterator]) {
+          const res = tags.html.apply(null, [[string, ''], ''])
+          if (res) {
+            stream.push(res)
+          }
+          for await (const chunk of value) {
+            if (!stream.push(chunk)) {
+              await once(stream, 'readCalled')
+            }
+          }
+        } else {
+          const res = tags.html.apply(null, [[string, ''], value])
+          if (res) {
+            stream.push(res)
+          }
         }
       }
 
-      if (endReached) {
-        stream.push(null)
-      }
-    })()
-  }
-
-  stream.html = html
-
-  stream.end = () => {
-    endReached = true
-  }
+      stream.push(null)
+    } catch (err) {
+      stream.destroy(err)
+    }
+  })()
 
   return stream
 }
 
-export { build }
+export { render }
